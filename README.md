@@ -21,3 +21,18 @@ La teoría de colas y de líneas de espera es estudio cuantitativo, que se prese
 - Calcular qué variación supondría en el coste modificar la capacidad del sistema.
 - Cuantificar el tiempo de cola y de permanencia en el sistema que deberá realizar el cliente para conocer si es excesivo o suficiente.
 - Plantear la solución óptima al problema de la cola para reducir al máximo los costes sin perder clientes.
+
+## Requerimientos Técnicos
+- Versión de R 4.2.3
+- RStudio ver. 2023.03
+- Librería queueing de R
+
+## Autores
+- **Jimena Musi Gutiérrez**
+[Musi35](https://github.com/Musi35)
+- **David Maximiliano Del Toro Nava**
+[MaxSNa15](https://github.com/MaxSNa15)
+- **Erick Uriel Ruíz Martínez**
+[ErickRz21](https://github.com/ErickRz21)
+- **Ana Sofía García Castillo**
+[SofiasGC009](https://github.com/SofiaGC009)
