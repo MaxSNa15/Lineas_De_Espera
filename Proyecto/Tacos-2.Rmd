@@ -1,0 +1,164 @@
+---
+title: "Proyecto Modelos Reporte"
+author: "Equipo Bluey"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Descripción general del proyecto.
+En este proyecto veremos la aplicación de las líneas de espera en dos negocios de venta de tacos para observar cuál es más productivo. Se usarán los datos de las ventas sobre los tacos de pastor en maíz para llegar a las conclusiones además de los datos de dos días, un jueves por la noche, el cual es un día normal.
+
+# Metas. 
+Utilizar la teoría de colas para: 
+
+- Calcular la productividad de las taquerías.  
+- Analizar si es posible hacer que la taquería menos productiva sea la más productiva.  
+
+# Descripción del modelo.
+### ¿Qué es teoría de colas?
+La teoría de colas y de líneas de espera es estudio cuantitativo, que se presenta en procesos frecuentes de atención al cliente de supermercados, bancos, oficinas de gobierno, hospitales en el que solicitan generar una transacción, cuyos lugares en muchos de los casos están sujetos a recursos y tiempo que tienen una capacidad de atención limitada.
+Esta teoría nació en el año 1909 gracias al matemático danés Agner Krarup Erlang, el cual, analiza las conversaciones telefónicas para realizar el cálculo del tamaño de las centralitas necesarias. Posteriormente, ha sido utilizada para resolver multitud de problemas de la vida real.
+
+### Objetivos de la teoría de colas. 
+- Conocer cuál es la capacidad óptima que minimice el coste del servicio.
+- Calcular qué variación supondría en el coste modificar la capacidad del sistema.
+- Cuantificar el tiempo de cola y de permanencia en el sistema que deberá realizar el cliente para conocer si es excesivo o suficiente.
+- Plantear la solución óptima al problema de la cola para reducir al máximo los costes sin perder clientes.
+
+# Planteamiento de ejemplos y código.
+Se les hicieron unas preguntas a dos taquerías diferentes, las cuales nombraremos taquería 1 y taquería 2 para su discreción. La taquería 1 tiene un taquero, el cual saca una orden cada 10 minutos y tienen producto para sacar hasta 375 tacos (75 órdenes de 5 tacos cada una) mientras que la taquería 2 tiene dos taqueros y atienden clientes cada 6 minutos además de tener la capacidad de sacar 400 tacos (80 órdenes de 5 tacos). Si a ambas taquerías les llegan clientes cada 30 minutos calcular, ¿A cuál taquería se le acaban los tacos primero?
+
+### Procedimiento
+
+```{r}
+# Se abre la librería de queueing
+library(queueing)
+```
+
+# Primer ejemplo. 
+Se les hicieron unas preguntas a dos taquerías diferentes, las cuales nombraremos taquería 1 y taquería 2 para su discreción. La taquería 1 tiene un taquero, el cual saca una orden cada 10 minutos y tienen producto para sacar hasta 375 tacos (75 órdenes de 5 tacos cada una) mientras que la taquería 2 tiene dos taqueros y atienden clientes cada 6 minutos además de tener la capacidad de sacar 400 tacos (80 órdenes de 5 tacos). Si a ambas taquerías les llegan clientes cada 30 minutos calcular, ¿A cuál taquería se le acaban los tacos primero?
+
+**Taquería 1**
+
+- Servidor: Taquero.
+- Clientes: Personas que se van a comer tacos.
+- Tamaño: 375 tacos
+- Tasa de llegada (lambda) = 30min/cliente
+- Tasa de servicio (mu) = 10 min/orden 
+- M/M/1 : FIFO/375/inf.
+
+*Se utilizará el modelo MM1K para su realización.*
+
+```{r}
+# Creación de la cola para la taquería 1
+taqueria1 <- NewInput.MM1K(lambda = 1/30, mu = 1/10, k = 375)
+
+# Se generan el modelo
+o_taqueria1 <- QueueingModel(taqueria1) 
+```
+
+**Taquería 2**
+
+- Servidor: Taquero
+- Clientes: Clientes
+- Tamaño: 400 tacos.
+- Tasa de llegada (lambda) = 30min/cliente
+- Tasa de servicio (mu) = 6 min/orden 
+- M/M/K : FIFO/400/inf.
+
+*Se utilizará el modelo MMC.*
+
+```{r}
+# Creacion de la cola para la taquería 2
+taqueria2 <- NewInput.MMC(lambda = 1/30, mu = 1/6, c = 2, n = 400)
+
+# Se genera el modelo
+o_taqueria2 <- QueueingModel(taqueria2)
+```
+
+```{r}
+# Se calcula el tiempo medio de espera
+tiem_taq1 <- Wq(o_taqueria1)
+tiem_taq1
+tiem_taq2 <- Wq(o_taqueria2)
+tiem_taq2
+
+# Se calcula el número de clientes promedio en el sistema
+clien_taq1 <- Lq(o_taqueria1)
+clien_taq1
+clien_taq2 <- Lq(o_taqueria2)
+clien_taq2
+
+# Se hacen las condiciones
+if (tiem_taq1 < tiem_taq2) {
+  print("La taquería 1 se quedará sin tacos primero.")
+} else if (tiem_taq2 < tiem_taq1) {
+  print("La taquería 2 se quedará sin tacos primero.")
+} else {
+  if (clien_taq1 < clien_taq2) {
+    print("La taquería 1 se quedará sin tacos primero.")
+  } else if (clien_taq2 > clien_taq1) {
+    print("La taquería 2 se quedará sin tacos primero.")
+  } else {
+    print("Ambas taquerías se quedarán sin tacos al mismo tiempo.")
+  }
+}
+```
+Se comparan los valores de Wq primero. Si los valores son diferentes, se determina cuál es menor y se imprime el mensaje correspondiente. Si los valores de Wq son iguales, se comparan los valores de Lq de manera similar.
+
+Se utiliza Wq para saber el tiempo promedio en el que está un cliente en la cola, por lo que el que tenga menor tiempo en la cola quiere decir que vende más rápido, por ende, la taquería dos se quedará sin tacos antes que la taquería 1.
+
+## Ejemplo 2
+Utilizando los datos del ejemplo pasado, se quiere ver si al contratar un segundo taquero que iguale la tasa de servicio en la taquería 1 puede hacerle competencia a la taquería 2.
+
+
+```{r}
+# Se plantea un nueva cola para la taquería 1
+# Creacion de la cola para la taquería 2
+taqueria1_nuevo <- NewInput.MMC(lambda = 1/30, mu = 1/6, c = 2, n = 375)
+
+# Se generan el modelo
+o_taqueria1_nuevo <- QueueingModel(taqueria1_nuevo)
+```
+
+```{r}
+# Se calcula el tiempo medio de espera
+tiem_taq1_n <- Wq(o_taqueria1_nuevo)
+tiem_taq1_n
+tiem_taq2
+
+# Se calcula el número promedio de los clientes en el sistema
+clien_taq1_n <- Lq(o_taqueria1_nuevo)
+clien_taq1_n
+clien_taq2
+
+# Se hacen las condiciones
+if (tiem_taq1_n < tiem_taq2) {
+  print("La taquería 1 se quedará sin tacos primero.")
+} else if (tiem_taq2 < tiem_taq1_n) {
+  print("La taquería 2 se quedará sin tacos primero.")
+} else {
+  if (clien_taq1_n < clien_taq2) {
+    print("La taquería 1 se quedará sin tacos primero.")
+  } else if (clien_taq2 < clien_taq1_n) {
+    print("La taquería 2 se quedará sin tacos primero.")
+  } else if (clien_taq1_n == clien_taq2){
+    print("Ambas taquerías se quedarán sin tacos al mismo tiempo.")
+  }
+}
+```
+Aquí podemos observar que aunque la taquería 1 contrate a otro taquero e igualen su tasa de servicio quedan igual que la taquería dos por lo que, aunque no les ganen pueden hacer competencia.
+
+# Conclusión. 
+En conclusión, pudimos aplicar con estos ejemplos se pudieron ver aplicadas dos de los objetivos aplicados a servicios de comida, siendo en este caso las taquerías y se pudo calcular la productividad de las taquerías y cómo mejorar el modelo, las cuales son maneras de las muchas de dar uso a la teoría de colas.
+
+# Referencias.
+Villarreal Satama, F. L., Berna, M. L., & Montenegro Gálvez, D. I. (2021). Teoría de colas y líneas de espera, un reto empresarial en el mejoramiento continuo de los servicios. Ciencia Latina Revista Científica Multidisciplinar, 5(5), 8418–8440. https://doi.org/10.37811/cl_rcm.v5i5.933
+ 
+José Antonio Ludeña. (2023). Teoría de colas | Economipedia. Economipedia. https://economipedia.com/definiciones/teoria-de-colas.html
